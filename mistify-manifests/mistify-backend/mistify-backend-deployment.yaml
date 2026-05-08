@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mistify-backend
+spec:
+  selector:
+    matchLabels:
+      app: mistify-backend
+  template:
+    metadata:
+      labels:
+        app: mistify-backend
+    spec:
+      containers:
+        - name: mistify-backend
+          image: el24ss/mistify-backend:latest
+          env:
+            - name: PORT
+              value: "3000"
+            - name: DB_HOST
+              value: "10.10.22.191" # Mettez l'adresse IP de votre VM qui héberge la BD
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: mistify
+            - name: DB_USER
+              value: mistify_user
+            - name: DB_PASSWORD
+              value: mistify_password
+            - name: JWT_SECRET
+              value: supersecret
+            - name: JWT_EXPIRES_IN
+              value: 7d
+          ports:
+            - containerPort: 3000

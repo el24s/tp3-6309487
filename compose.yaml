@@ -1,0 +1,41 @@
+services:
+
+  db:
+    image: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - ecommerce-network
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:sts
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    ports:
+      - 9443:9443
+      - 8000:8000  # Remove if you do not intend to use Edge Agents
+
+volumes:
+  db_data:
+  portainer_data:
+    name: portainer_data
+
+networks:
+  ecommerce-network:
+    driver: bridge
+  default:
+    name: portainer_network
