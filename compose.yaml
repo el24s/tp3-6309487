@@ -23,27 +23,26 @@ services:
     
   # jellyfin  
   jellyfin:
-  # Image jellyfin officielle
-  image: jellyfin/jellyfin:latest
-  # Nom donné au conteneur 
-  container_name: jellyfin
-  # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé 
-  restart: unless-stopped
-  # Réseau dans lequel le conteneur va s'exécuter
-  networks: 
-    - ellyn-network
-  labels:
-  - 'traefik.enable=true'
-  - 'traefik.http.routers.jellyfin.rule=Host(`jellyfin.${MY_DOMAIN}`)'
-  - 'traefik.http.routers.jellyfin.entryPoints=websecure'
-  environment:
-    - TZ=America/Montreal
-  # Volumes du conteneur: mappe des répertoires du conteneur vers des répertoire de la machine hôte
-  volumes:
-    - jellyfin_data:/config
-    - /mnt/media/Movies:/movies
-    - /mnt/media/TV:/tv
-    
+    # Image jellyfin officielle
+    image: jellyfin/jellyfin:latest
+    # Nom donné au conteneur 
+    container_name: jellyfin
+    # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé 
+    restart: unless-stopped
+    # Réseau dans lequel le conteneur va s'exécuter
+    networks: 
+      - ellyn-network
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.jellyfin.rule=Host(`jellyfin.${MY_DOMAIN}`)'
+      - 'traefik.http.routers.jellyfin.entryPoints=websecure'
+    environment:
+      - TZ=America/Montreal
+    # Volumes du conteneur: mappe des répertoires du conteneur vers des répertoire de la machine hôte
+    volumes:
+      - jellyfin_data:/config
+      - /mnt/media/Movies:/movies
+      - /mnt/media/TV:/tv
   # plex
   plex:
     image: lscr.io/linuxserver/plex:latest
@@ -66,7 +65,7 @@ services:
       - /path/to/tvseries:/tv
       - /path/to/movies:/movies
     restart: unless-stopped
-
+    
   # traeffik
   proxy:
     image: traefik
@@ -107,14 +106,11 @@ services:
     environment:
       - 'DUCKDNS_TOKEN=${DUCKDNS_TOKEN}'
 
-volumes:
-  portainer_data:
-    name: portainer_data
-  jellyfin_data:
-    name: jellyfin_data
-  plex_data:
-    name: plex_data
+    volumes:
+      portainer_data:
+      jellyfin_data:
+      plex_data:
 
-networks:
-  ellyn-network:
-    driver: bridge
+    networks:
+      ellyn-network:
+        driver: bridge
