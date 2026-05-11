@@ -24,7 +24,7 @@ services:
   # jellyfin  
   jellyfin:
     # Image jellyfin officielle
-    image: jellyfin/jellyfin:latest
+    image: lscr.io/linuxserver/jellyfin:latest
     # Nom donné au conteneur 
     container_name: jellyfin
     # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé 
