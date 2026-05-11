@@ -99,12 +99,12 @@ services:
     environment:
       - 'DUCKDNS_TOKEN=${DUCKDNS_TOKEN}'
 
-    volumes:
-      portainer_data:
-      jellyfin_data:
-      /path/to/plex/library:
-      '../data/traefik/letsencrypt:
+volumes:
+  portainer_data:
+  jellyfin_data:
+  /path/to/plex/library:
+  ../data/traefik/letsencrypt:
 
-    networks:
-      ellyn-network:
-        driver: bridge
+networks:
+  ellyn-network:
+    driver: bridge
