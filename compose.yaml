@@ -1,41 +1,120 @@
 services:
-
-  db:
-    image: mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    networks:
-      - ecommerce-network
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
+  # portainer
   portainer:
+    # Image de portainer officielle (ce=community edition, alpine=légère) 
+    image: portainer/portainer-ce:alpine
+    # Nom donné au conteneur 
     container_name: portainer
-    image: portainer/portainer-ce:sts
-    restart: always
+    # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé 
+    restart: unless-stopped
+    # Réseau docker dans lequel le conteneur va s'exécuter
+    networks: 
+        - ellyn-network
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.portainer.rule=Host(`portainer.${MY_DOMAIN}`)'
+      - 'traefik.http.routers.portainer.entryPoints=websecure'
+      - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
+      - 'traefik.http.routers.portainer.service=portainer'
+    # Volumes 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
+    
+  # jellyfin  
+  jellyfin:
+  # Image jellyfin officielle
+  image: jellyfin/jellyfin:latest
+  # Nom donné au conteneur 
+  container_name: jellyfin
+  # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé 
+  restart: unless-stopped
+  # Réseau dans lequel le conteneur va s'exécuter
+  networks: 
+    - ellyn-network
+  labels:
+  - 'traefik.enable=true'
+  - 'traefik.http.routers.jellyfin.rule=Host(`jellyfin.${MY_DOMAIN}`)'
+  - 'traefik.http.routers.jellyfin.entryPoints=websecure'
+  environment:
+    - TZ=America/Montreal
+  # Volumes du conteneur: mappe des répertoires du conteneur vers des répertoire de la machine hôte
+  volumes:
+    - jellyfin_data:/config
+    - /mnt/media/Movies:/movies
+    - /mnt/media/TV:/tv
+    
+  # plex
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plex.rule=Host(`plex.${MY_DOMAIN}`)"
+      - "traefik.http.routers.plex.entryPoints=websecure"
+      - "traefik.http.routers.plex.tls.certresolver=letsencrypt"
+      - "traefik.http.services.plex.loadbalancer.server.port=32400"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - VERSION=docker
+      - PLEX_CLAIM= #optional
+    volumes:
+      - /path/to/plex/library:/config
+      - /path/to/tvseries:/tv
+      - /path/to/movies:/movies
+    restart: unless-stopped
+
+  # traeffik
+  proxy:
+    image: traefik
+    container_name: traefik
+    restart: unless-stopped
+    networks: 
+        - ellyn-network
+    command:
+      - '--log.level=DEBUG'
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--certificatesresolvers.letsencrypt.acme.dnschallenge=true'
+      - '--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=duckdns'
+      - '--certificatesresolvers.letsencrypt.acme.email=${MY_EMAIL}'
+      - '--certificatesresolvers.letsencrypt.acme.dnschallenge.disablePropagationCheck=true'
+      - '--certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53'
+      - '--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.web.http.redirections.entrypoint.to=websecure'
+      - '--entrypoints.web.http.redirections.entrypoint.scheme=https'
+      - '--entrypoints.websecure.address=:443'
+      - '--entrypoints.websecure.http.tls=true'
+      - '--entrypoints.websecure.http.tls.certResolver=letsencrypt'
+      - '--entrypoints.websecure.http.tls.domains[0].main=${MY_DOMAIN}'
+      - '--entrypoints.websecure.http.tls.domains[0].sans=*.${MY_DOMAIN}'
+    volumes:
+      - '../data/traefik/letsencrypt:/letsencrypt'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.api.rule=Host(`${MY_DOMAIN}`)'
+      - 'traefik.http.routers.api.entryPoints=websecure'
+      - 'traefik.http.routers.api.service=api@internal'
     ports:
-      - 9443:9443
-      - 8000:8000  # Remove if you do not intend to use Edge Agents
+      - '443:443'
+      - '80:80'
+    environment:
+      - 'DUCKDNS_TOKEN=${DUCKDNS_TOKEN}'
 
 volumes:
-  db_data:
   portainer_data:
     name: portainer_data
+  jellyfin_data:
+    name: jellyfin_data
+  plex_data:
+    name: plex_data
 
 networks:
-  ecommerce-network:
+  ellyn-network:
     driver: bridge
-  default:
-    name: portainer_network
