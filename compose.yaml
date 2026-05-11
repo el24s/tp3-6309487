@@ -1,14 +1,14 @@
 services:
   # portainer
   portainer:
-    # Image de portainer officielle (ce=community edition, alpine=légère) 
+    # Image de portainer officielle (ce=community edition, alpine=légère)
     image: portainer/portainer-ce:alpine
-    # Nom donné au conteneur 
+    # Nom donné au conteneur
     container_name: portainer
-    # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé 
+    # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé
     restart: unless-stopped
     # Réseau docker dans lequel le conteneur va s'exécuter
-    networks: 
+    networks:
         - ellyn-network
     labels:
       - 'traefik.enable=true'
@@ -16,26 +16,28 @@ services:
       - 'traefik.http.routers.portainer.entryPoints=websecure'
       - 'traefik.http.services.portainer.loadbalancer.server.port=9000'
       - 'traefik.http.routers.portainer.service=portainer'
-    # Volumes 
+    # Volumes
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
-    
-  # jellyfin  
+
+  # jellyfin
   jellyfin:
     # Image jellyfin officielle
-    image: lscr.io/linuxserver/jellyfin:latest
-    # Nom donné au conteneur 
+    image: jellyfin/jellyfin:latest
+    # Nom donné au conteneur
     container_name: jellyfin
-    # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé 
+    # Dans le cas où le conteneur s'arrête/crash, il est automatiquement relancé
     restart: unless-stopped
     # Réseau dans lequel le conteneur va s'exécuter
-    networks: 
+    networks:
       - ellyn-network
     labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.jellyfin.rule=Host(`jellyfin.${MY_DOMAIN}`)'
-      - 'traefik.http.routers.jellyfin.entryPoints=websecure'
+      - "traefik.enable=true"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.${MY_DOMAIN}`)"
+      - "traefik.http.routers.jellyfin.entrypoints=websecure"
+      - "traefik.http.routers.jellyfin.tls.certresolver=letsencrypt"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
     environment:
       - TZ=America/Montreal
     # Volumes du conteneur: mappe des répertoires du conteneur vers des répertoire de la machine hôte
@@ -47,24 +49,30 @@ services:
   plex:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
-    network_mode: host
+    restart: unless-stopped
+    networks:
+      - ellyn-network
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Etc/UTC
+      - TZ=America/Montreal
       - VERSION=docker
     volumes:
-      - /path/to/plex/library:/config
-      - /path/to/tvseries:/tv
-      - /path/to/movies:/movies
-    restart: unless-stopped
-    
+      - plex_data:/config
+      - /mnt/media/TV:/tv
+      - /mnt/media/Movies:/movies
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plex.rule=Host(`plex.${MY_DOMAIN}`)"
+      - "traefik.http.routers.plex.entrypoints=websecure"
+      - "traefik.http.services.plex.loadbalancer.server.port=32400"
+
   # traeffik
   proxy:
     image: traefik
     container_name: traefik
     restart: unless-stopped
-    networks: 
+    networks:
         - ellyn-network
     command:
       - '--log.level=DEBUG'
@@ -102,8 +110,7 @@ services:
 volumes:
   portainer_data:
   jellyfin_data:
-  /path/to/plex/library:
-  ../data/traefik/letsencrypt:
+  plex_data:
 
 networks:
   ellyn-network:
