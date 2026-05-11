@@ -48,18 +48,11 @@ services:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
     network_mode: host
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.plex.rule=Host(`plex.${MY_DOMAIN}`)"
-      - "traefik.http.routers.plex.entryPoints=websecure"
-      - "traefik.http.routers.plex.tls.certresolver=letsencrypt"
-      - "traefik.http.services.plex.loadbalancer.server.port=32400"
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
       - VERSION=docker
-      - PLEX_CLAIM= #optional
     volumes:
       - /path/to/plex/library:/config
       - /path/to/tvseries:/tv
@@ -109,7 +102,7 @@ services:
     volumes:
       portainer_data:
       jellyfin_data:
-      plex_data:
+      /path/to/plex/library:
 
     networks:
       ellyn-network:
