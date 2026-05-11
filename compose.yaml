@@ -103,6 +103,7 @@ services:
       portainer_data:
       jellyfin_data:
       /path/to/plex/library:
+      '../data/traefik/letsencrypt:
 
     networks:
       ellyn-network:
