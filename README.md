@@ -13,6 +13,7 @@ Configuration
 -> Créer les containers avec la commande
   - sudo docker compose up -d
     - (-d) detached - pour garder l'acès au terminal lors de la création des containers
+
 -> Fermer les containers avec la commande
   - sudo docker compose down
 
