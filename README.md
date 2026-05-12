@@ -1,9 +1,9 @@
 # Documentation
 
 Configuration
--> Installer Docker & Docker compose
--> Création d'un nom de domaine avec DuckDns 
-  - https://www.duckdns.org/ 
+- > Installer Docker & Docker compose
+- > Création d'un nom de domaine avec DuckDns 
+    - https://www.duckdns.org/ 
 
  Étapes
 - > Vérification la version Docker (voir si l'installation à bien été effectuée)
