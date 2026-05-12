@@ -24,6 +24,6 @@ AND TADAA YOU SUCCESSFULLY CREATED 3 SERVICES AND 1 REVERSE PROXY WITH MY COMPOS
 - Jellyfin
 - Traefik
 
-
+PS: Documentation incomplète ... 
 
 
